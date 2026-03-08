@@ -91,3 +91,19 @@ export const discoverMovies = (opts = {}) =>
 export const IMG = (path, size = 'w500') =>
     path ? `${import.meta.env.VITE_TMDB_IMAGE_BASE || 'https://image.tmdb.org/t/p'}/${size}${path}` : null
 
+// ── New helpers ────────────────────────────────────────────
+export const searchPeople = (query, page = 1) =>
+    tmdb.get('/search/person', { params: p({ query, page }) })
+
+export const getMovieRecommendations = (id, page = 1) =>
+    tmdb.get(`/movie/${id}/recommendations`, { params: p({ page }) })
+
+export const getTVRecommendations = (id, page = 1) =>
+    tmdb.get(`/tv/${id}/recommendations`, { params: p({ page }) })
+
+export const getMoviesByDirector = (personId, page = 1) =>
+    tmdb.get('/discover/movie', { params: p({ with_crew: personId, sort_by: 'release_date.asc', page }) })
+
+export const getMoviesByActor = (personId, page = 1) =>
+    tmdb.get('/discover/movie', { params: p({ with_cast: personId, sort_by: 'vote_count.desc', page }) })
+

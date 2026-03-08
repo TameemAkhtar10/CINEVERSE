@@ -32,6 +32,12 @@ const Trending = lazy(() => import('./pages/Trending'))
 const Charts = lazy(() => import('./pages/Charts'))
 const Profile = lazy(() => import('./pages/Profile'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const Trivia = lazy(() => import('./pages/Trivia'))
+const ActorComparison = lazy(() => import('./pages/ActorComparison'))
+const MovieTimeline = lazy(() => import('./pages/MovieTimeline'))
+const Leaderboard = lazy(() => import('./pages/Leaderboard'))
+const Poll = lazy(() => import('./pages/Poll'))
+const SwipePage = lazy(() => import('./pages/SwipePage'))
 
 const Spinner = () => (
     <div className="flex items-center justify-center min-h-screen bg-bg">
@@ -165,6 +171,12 @@ export default function App() {
                             <Route path="/watchlist" element={<ProtectedRoute><Watchlist /></ProtectedRoute>} />
                             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                            <Route path="/trivia" element={<Trivia />} />
+                            <Route path="/compare" element={<ActorComparison />} />
+                            <Route path="/timeline" element={<MovieTimeline />} />
+                            <Route path="/leaderboard" element={<Leaderboard />} />
+                            <Route path="/poll" element={<Poll />} />
+                            <Route path="/swipe" element={<SwipePage />} />
                             <Route path="*" element={<NotFound />} />
                         </Routes>
                     </Suspense>

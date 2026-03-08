@@ -1,0 +1,1 @@
+import{r as s}from"./index-Y_lqfw2c.js";function o(e,t,n){const r=s.useRef(null);return s.useCallback(c=>{n||(r.current&&r.current.disconnect(),r.current=new IntersectionObserver(u=>{u[0].isIntersecting&&t&&e()}),c&&r.current.observe(c))},[n,t,e])}export{o as u};

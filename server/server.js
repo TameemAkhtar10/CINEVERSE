@@ -13,6 +13,10 @@ const ratingsRoutes = require('./routes/ratings')
 const watchlistRoutes = require('./routes/watchlist')
 const notificationsRoutes = require('./routes/notifications')
 const profileRoutes = require('./routes/profile')
+const commentsRoutes = require('./routes/comments')
+const pollsRoutes = require('./routes/polls')
+const leaderboardRoutes = require('./routes/leaderboard')
+const shareRoutes = require('./routes/share')
 
 const app = express()
 
@@ -31,6 +35,10 @@ app.use('/api/ratings', ratingsRoutes)
 app.use('/api/watchlist', watchlistRoutes)
 app.use('/api/notifications', notificationsRoutes)
 app.use('/api/profile', profileRoutes)
+app.use('/api/comments', commentsRoutes)
+app.use('/api/polls', pollsRoutes)
+app.use('/api/leaderboard', leaderboardRoutes)
+app.use('/api/share', shareRoutes)
 
 app.use(express.static(path.join(__dirname, 'public')))
 

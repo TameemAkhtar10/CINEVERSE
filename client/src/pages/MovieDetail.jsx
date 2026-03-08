@@ -2,12 +2,13 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { gsap } from 'gsap'
-import { getMovieDetails, getMovieTrailer, getMovieCredits, getSimilarMovies, IMG } from '../api/tmdb'
+import { getMovieDetails, getMovieTrailer, getMovieCredits, getSimilarMovies, getMovieRecommendations, IMG } from '../api/tmdb'
 import { addHistory } from '../redux/slices/historySlice'
 import { addFavorite, removeFavorite } from '../redux/slices/favoritesSlice'
 import { openTrailer } from '../redux/slices/uiSlice'
 import TrailerModal from '../components/TrailerModal'
 import ScrollRow from '../components/ScrollRow'
+import CommentSection from '../components/CommentSection'
 import { getTrailerKey, formatRating, formatDate } from '../utils/helpers'
 
 export default function MovieDetail() {
@@ -21,6 +22,7 @@ export default function MovieDetail() {
     const [movie, setMovie] = useState(null)
     const [cast, setCast] = useState([])
     const [similar, setSimilar] = useState([])
+    const [recommendations, setRecommendations] = useState([])
     const [key, setKey] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -38,12 +40,14 @@ export default function MovieDetail() {
             getMovieTrailer(id),
             getMovieCredits(id),
             getSimilarMovies(id),
+            getMovieRecommendations(id),
         ])
-            .then(([mRes, vRes, cRes, sRes]) => {
+            .then(([mRes, vRes, cRes, sRes, recRes]) => {
                 setMovie(mRes.data)
                 setKey(getTrailerKey(vRes.data))
                 setCast(cRes.data.cast?.slice(0, 12) || [])
                 setSimilar(sRes.data.results || [])
+                setRecommendations(recRes.data.results || [])
                 if (isAuthenticated) {
                     dispatch(addHistory({
                         movieId: mRes.data.id,
@@ -182,6 +186,33 @@ export default function MovieDetail() {
                                     {isFav ? 'Saved' : 'Add to Favorites'}
                                 </button>
                             )}
+                            {/* Wallpaper download */}
+                            {movie.poster_path && (
+                                <a
+                                    href={IMG(movie.poster_path, 'original')}
+                                    download={`${movie.title}-wallpaper.jpg`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 border border-white/20 text-white/70 hover:border-indigo-500/50 hover:text-indigo-300 font-semibold px-5 py-3 rounded-full transition-all text-sm"
+                                >
+                                    📥 Download Poster
+                                </a>
+                            )}
+                            {/* Share */}
+                            <button
+                                onClick={() => {
+                                    const url = window.location.href
+                                    if (navigator.share) {
+                                        navigator.share({ title: movie.title, text: `Check out ${movie.title} on CineVerse!`, url })
+                                    } else {
+                                        navigator.clipboard.writeText(url)
+                                        alert('Link copied to clipboard!')
+                                    }
+                                }}
+                                className="flex items-center gap-2 border border-white/20 text-white/70 hover:border-white/40 hover:text-white font-semibold px-5 py-3 rounded-full transition-all text-sm"
+                            >
+                                🔗 Share
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -213,10 +244,20 @@ export default function MovieDetail() {
                 )}
 
                 {similar.length > 0 && (
-                    <div className="mt-8 mb-10">
+                    <div className="mt-8">
                         <ScrollRow title="Similar Movies" items={similar} loading={false} mediaType="movie" />
                     </div>
                 )}
+
+                {recommendations.length > 0 && (
+                    <div className="mt-2 mb-4">
+                        <ScrollRow title="✨ You Might Also Like" items={recommendations} loading={false} mediaType="movie" />
+                    </div>
+                )}
+
+                <div className="max-w-3xl pb-16">
+                    <CommentSection movieId={movie.id} mediaType="movie" />
+                </div>
             </div>
 
             {trailerOpen && <TrailerModal trailerKey={trailerKey} />}

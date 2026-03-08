@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { getTVDetails, getTVTrailer, getTVCredits, getSimilarTV, IMG } from '../api/tmdb'
+import { getTVDetails, getTVTrailer, getTVCredits, getSimilarTV, getTVRecommendations, IMG } from '../api/tmdb'
 import { addHistory } from '../redux/slices/historySlice'
 import { addFavorite, removeFavorite } from '../redux/slices/favoritesSlice'
 import { openTrailer } from '../redux/slices/uiSlice'
 import TrailerModal from '../components/TrailerModal'
 import ScrollRow from '../components/ScrollRow'
+import CommentSection from '../components/CommentSection'
 import { getTrailerKey, getGenreNames, formatRating, formatDate } from '../utils/helpers'
 
 export default function TVDetail() {
@@ -20,6 +21,7 @@ export default function TVDetail() {
     const [show, setShow] = useState(null)
     const [cast, setCast] = useState([])
     const [similar, setSimilar] = useState([])
+    const [recommendations, setRecommendations] = useState([])
     const [key, setKey] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -32,12 +34,14 @@ export default function TVDetail() {
             getTVTrailer(id),
             getTVCredits(id),
             getSimilarTV(id),
+            getTVRecommendations(id),
         ])
-            .then(([sRes, vRes, cRes, simRes]) => {
+            .then(([sRes, vRes, cRes, simRes, recRes]) => {
                 setShow(sRes.data)
                 setKey(getTrailerKey(vRes.data))
                 setCast(cRes.data.cast?.slice(0, 12) || [])
                 setSimilar(simRes.data.results || [])
+                setRecommendations(recRes.data.results || [])
                 if (isAuthenticated) {
                     dispatch(addHistory({
                         movieId: sRes.data.id,
@@ -117,7 +121,7 @@ export default function TVDetail() {
 
                         <p className="text-text-secondary leading-relaxed">{show.overview || 'Description not available.'}</p>
 
-                        <div className="flex gap-4 pt-2">
+                        <div className="flex flex-wrap gap-4 pt-2">
                             <button
                                 onClick={() => dispatch(openTrailer(key))}
                                 className="flex items-center gap-2 bg-accent hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-full transition-all shadow-red-sm hover:shadow-red-glow"
@@ -134,6 +138,31 @@ export default function TVDetail() {
                                     {isFav ? 'Saved' : 'Add to Favorites'}
                                 </button>
                             )}
+                            {show.poster_path && (
+                                <a
+                                    href={IMG(show.poster_path, 'original')}
+                                    download={`${show.name}-wallpaper.jpg`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 border border-white/20 text-white/70 hover:border-indigo-500/50 hover:text-indigo-300 font-semibold px-5 py-3 rounded-full transition-all text-sm"
+                                >
+                                    📥 Download Poster
+                                </a>
+                            )}
+                            <button
+                                onClick={() => {
+                                    const url = window.location.href
+                                    if (navigator.share) {
+                                        navigator.share({ title: show.name, text: `Check out ${show.name} on CineVerse!`, url })
+                                    } else {
+                                        navigator.clipboard.writeText(url)
+                                        alert('Link copied to clipboard!')
+                                    }
+                                }}
+                                className="flex items-center gap-2 border border-white/20 text-white/70 hover:border-white/40 hover:text-white font-semibold px-5 py-3 rounded-full transition-all text-sm"
+                            >
+                                🔗 Share
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -161,10 +190,20 @@ export default function TVDetail() {
                 )}
 
                 {similar.length > 0 && (
-                    <div className="mt-8 mb-10">
+                    <div className="mt-8">
                         <ScrollRow title="Similar TV Shows" items={similar} loading={false} mediaType="tv" />
                     </div>
                 )}
+
+                {recommendations.length > 0 && (
+                    <div className="mt-2 mb-4">
+                        <ScrollRow title="✨ You Might Also Like" items={recommendations} loading={false} mediaType="tv" />
+                    </div>
+                )}
+
+                <div className="max-w-3xl pb-16">
+                    <CommentSection movieId={show.id} mediaType="tv" />
+                </div>
             </div>
 
             {trailerOpen && <TrailerModal trailerKey={trailerKey} />}
