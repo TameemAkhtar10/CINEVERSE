@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Theme CSS variables ─────────────────────────────────── */
+:root {
+    --clr-text-primary: #ffffff;
+    --clr-text-secondary: #a3a3a3;
+}
+
+html:not(.dark) {
+    --clr-text-primary: #111111;
+    --clr-text-secondary: #555555;
+}
+
+/* Light mode background / card overrides */
+html:not(.dark) body,
+html:not(.dark) .bg-bg {
+    background-color: #f0f2f5 !important;
+}
+
+html:not(.dark) .bg-card {
+    background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-card .text-white,
+html:not(.dark) .bg-bg .text-white,
+html:not(.dark) h1.text-white,
+html:not(.dark) h2.text-white,
+html:not(.dark) h3.text-white,
+html:not(.dark) p.text-white,
+html:not(.dark) span.text-white {
+    color: var(--clr-text-primary);
+}
+
+html:not(.dark) .border-white\/\[0\.06\] {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .border-white\/10 {
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html:not(.dark) .border-white\/\[0\.08\] {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── Base styles ─────────────────────────────────────────── */
+@layer base {
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: #0f0f0f;
+        color: var(--clr-text-primary);
+        font-family: 'Poppins', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 0px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #0f0f0f;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #E50914;
+        border-radius: 3px;
+    }
+}
+
+@layer utilities {
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* ── Custom cursor ───────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    cursor: none !important;
+}
+
+/* ── Ripple animation ────────────────────────────────────── */
+@keyframes ripple-expand {
+    to {
+        transform: scale(3.5);
+        opacity: 0;
+    }
+}
