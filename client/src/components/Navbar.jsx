@@ -94,19 +94,21 @@ export default function Navbar() {
     }
 
     const linkClass = ({ isActive }) =>
-        `text-sm font-semibold transition-colors duration-200 relative pb-1 ${isActive
-            ? 'text-accent after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-accent'
-            : 'text-white/80 hover:text-white'
+        `text-sm font-medium transition-colors duration-200 relative pb-1 ${isActive
+            ? 'text-indigo-400 after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-indigo-400 after:rounded-full'
+            : 'text-slate-400 hover:text-slate-100'
         }`
 
     return (
         <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-white/[0.08] ${scrolled
-                ? 'bg-black/70 backdrop-blur-xl'
-                : 'bg-black/40 backdrop-blur-md'
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 relative ${scrolled
+                ? 'bg-[#030712]/90 backdrop-blur-2xl'
+                : 'bg-[#030712]/70 backdrop-blur-xl'
                 }`}
         >
-                <div ref={innerNavRef} className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+            {/* Indigo gradient underline */}
+            <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-indigo-500/55 to-transparent" />
+            <div ref={innerNavRef} className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
                 {/* Logo */}
                 <Link
                     ref={logoRef}
@@ -116,8 +118,10 @@ export default function Navbar() {
                     onMouseLeave={handleLogoLeave}
                     style={{ display: 'inline-flex', transformOrigin: 'center center', willChange: 'transform' }}
                 >
-                    <span className="text-accent text-xl">●</span>
-                    <span className="text-white font-extrabold text-xl tracking-tight">CINEVERSE</span>
+                    <svg className="w-5 h-5 text-indigo-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2l1.8 5.4 5.7.4-4.4 3.3 1.5 5.5L12 13.4l-4.6 3.2 1.5-5.5L4.5 7.8l5.7-.4z" />
+                    </svg>
+                    <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-300 bg-clip-text text-transparent">CINEVERSE</span>
                 </Link>
 
                 {/* Desktop nav links */}
@@ -141,7 +145,7 @@ export default function Navbar() {
                                 onChange={(e) => setQuery(e.target.value)}
                                 onBlur={() => { if (!query) setSearchOpen(false) }}
                                 placeholder="Search movies, shows..."
-                                className="bg-white/10 border border-white/20 text-white text-sm rounded-full px-4 py-1.5 w-44 outline-none focus:border-accent transition-all"
+                                className="bg-white/[0.07] border border-white/15 text-white text-sm rounded-full px-4 py-1.5 w-44 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                             />
                         )}
                         <button
@@ -216,7 +220,7 @@ export default function Navbar() {
                                 </button>
 
                                 {notifOpen && (
-                                    <div className="absolute right-0 top-9 w-80 bg-[#1e1e1e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in">
+                                    <div className="absolute right-0 top-9 w-80 bg-[#0f172a] border border-indigo-500/20 rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in">
                                         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                                             <h3 className="text-white font-bold text-sm">Notifications</h3>
                                             {unreadCount > 0 && (
@@ -230,7 +234,7 @@ export default function Navbar() {
                                                 <div className="px-4 py-8 text-center text-text-secondary text-sm">No notifications yet</div>
                                             ) : (
                                                 notifications.map((n) => (
-                                                    <div key={n._id} className={`flex items-start gap-3 px-4 py-3 border-b border-white/[0.06] hover:bg-white/5 transition-colors ${!n.read ? 'bg-accent/5' : ''}`}>
+                                                    <div key={n._id} className={`flex items-start gap-3 px-4 py-3 border-b border-white/[0.06] hover:bg-indigo-500/5 transition-colors ${!n.read ? 'bg-indigo-500/5' : ''}`}>
                                                         {n.poster && <img src={IMG(n.poster, 'w92')} alt="" className="w-8 h-10 rounded object-cover flex-shrink-0" />}
                                                         <div className="flex-1 min-w-0">
                                                             <p className="text-white text-xs font-semibold leading-tight">{n.title}</p>
@@ -257,13 +261,13 @@ export default function Navbar() {
                         <div className="relative" ref={menuRef}>
                             <button
                                 onClick={() => setMenuOpen((v) => !v)}
-                                className="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-white font-bold text-sm hover:bg-red-700 transition-colors"
+                                className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-full flex items-center justify-center text-white font-bold text-sm hover:from-indigo-400 hover:to-violet-500 transition-all shadow-indigo-sm"
                             >
                                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                             </button>
 
                             {menuOpen && (
-                                <div className="absolute right-0 top-10 w-48 bg-[#1e1e1e] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
+                                <div className="absolute right-0 top-10 w-48 bg-[#0f172a] border border-indigo-500/20 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in">
                                     <div className="px-4 py-3 border-b border-white/10">
                                         <p className="text-white text-sm font-semibold truncate">{user?.name}</p>
                                         <p className="text-text-secondary text-xs truncate">{user?.email}</p>
@@ -287,7 +291,7 @@ export default function Navbar() {
                     ) : (
                         <div className="flex items-center gap-3">
                             <Link to="/login" className="text-sm font-semibold text-white/80 hover:text-white transition-colors">Login</Link>
-                            <Link to="/signup" className="text-sm font-semibold bg-accent hover:bg-red-700 text-white px-4 py-1.5 rounded-full transition-colors">Sign Up</Link>
+                            <Link to="/signup" className="text-sm font-semibold bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1.5 rounded-full transition-colors shadow-sm">Sign Up</Link>
                         </div>
                     )}
                 </div>

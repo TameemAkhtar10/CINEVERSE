@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useScrollReveal, useStaggerReveal } from '../hooks/useScrollAnimation'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFavorites } from '../redux/slices/favoritesSlice'
 import { fetchHistory } from '../redux/slices/historySlice'
@@ -22,6 +24,14 @@ const QUICK_GENRES = [
     { id: 14, name: 'Fantasy' },
 ]
 
+const MOOD_FILTERS = [
+    { key: 'happy', icon: '😊', label: 'Happy', genres: [35, 16, 10751], color: 'from-yellow-500 to-orange-400' },
+    { key: 'sad', icon: '😢', label: 'Sad', genres: [18, 10749], color: 'from-blue-600 to-blue-800' },
+    { key: 'thriller', icon: '😱', label: 'Thriller', genres: [53, 27, 80], color: 'from-rose-600 to-red-800' },
+    { key: 'romantic', icon: '💗', label: 'Romantic', genres: [10749, 18], color: 'from-pink-500 to-rose-600' },
+    { key: 'adventure', icon: '🌟', label: 'Adventure', genres: [12, 28, 14], color: 'from-indigo-500 to-violet-600' },
+]
+
 export default function Home() {
     const dispatch = useDispatch()
     const { isAuthenticated } = useSelector((s) => s.auth)
@@ -41,6 +51,30 @@ export default function Home() {
     const [activeGenre, setActiveGenre] = useState(null)
     const [genreMovies, setGenreMovies] = useState([])
     const [genreLoading, setGenreLoading] = useState(false)
+
+    const [activeMood, setActiveMood] = useState(null)
+    const [moodMovies, setMoodMovies] = useState([])
+    const [moodLoading, setMoodLoading] = useState(false)
+
+    const [pickerSpinning, setPickerSpinning] = useState(false)
+    const navigate = useNavigate()
+
+    // Scroll reveal refs
+    const moodTitleRef = useScrollReveal({ from: { opacity: 0, x: -28 }, to: { opacity: 1, x: 0, duration: 0.55, ease: 'power3.out' } })
+    const moodBtnsRef = useStaggerReveal()
+    const genreTitleRef = useScrollReveal({ from: { opacity: 0, y: 20 }, to: { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' } })
+    const genreChipsRef = useStaggerReveal({ from: { opacity: 0, scale: 0.85, y: 12 }, to: { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(1.4)', stagger: 0.045 } })
+
+    const handleRandomPick = () => {
+        const pool = [...trending, ...popular].filter(Boolean)
+        if (!pool.length) return
+        setPickerSpinning(true)
+        setTimeout(() => {
+            const pick = pool[Math.floor(Math.random() * pool.length)]
+            setPickerSpinning(false)
+            navigate(`/${pick.media_type === 'tv' ? 'tv' : 'movie'}/${pick.id}`)
+        }, 1200)
+    }
 
     // Continue watching: history items that have watch progress
     const continueWatching = Object.values(watchProgress)
@@ -99,18 +133,65 @@ export default function Home() {
         }
     }
 
+    const handleMoodClick = async (mood) => {
+        if (activeMood?.key === mood.key) {
+            setActiveMood(null)
+            setMoodMovies([])
+            return
+        }
+        setActiveMood(mood)
+        setMoodLoading(true)
+        try {
+            const res = await getMoviesByGenre(mood.genres[0])
+            setMoodMovies(res.data.results || [])
+        } catch {
+        } finally {
+            setMoodLoading(false)
+        }
+    }
+
     return (
         <div className="min-h-screen bg-bg">
             {hero && <HeroSection movie={hero} />}
             {!hero && loading && <div className="w-full h-[560px] bg-card animate-pulse" />}
 
             <div className="pt-4">
-                {/* Genre chips */}
+                {/* ── Mood Filter ─────────────────────────────── */}
+                <div className="px-4 md:px-6 py-6">
+                    <h2 ref={moodTitleRef} className="text-text-primary font-bold text-xl mb-4">What's your mood?</h2>
+                    <div ref={moodBtnsRef} className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+                        {MOOD_FILTERS.map((mood) => (
+                            <button
+                                key={mood.key}
+                                onClick={() => handleMoodClick(mood)}
+                                className={`flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 border ${activeMood?.key === mood.key
+                                    ? `bg-gradient-to-r ${mood.color} border-transparent text-white shadow-lg scale-[1.04]`
+                                    : 'bg-card border-white/10 text-text-secondary hover:border-indigo-500/40 hover:text-slate-200'
+                                    }`}
+                            >
+                                <span className="text-lg">{mood.icon}</span>
+                                {mood.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Mood-filtered results */}
+                {activeMood && (
+                    <ScrollRow
+                        title={`${activeMood.icon} ${activeMood.label} Picks`}
+                        items={moodMovies}
+                        loading={moodLoading}
+                        mediaType="movie"
+                    />
+                )}
+
+                {/* ── Genre Chips ────────────────────────────── */}
                 <div className="px-4 md:px-6 py-4">
-                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                    <div ref={genreChipsRef} className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                         <button
                             onClick={() => { setActiveGenre(null); setGenreMovies([]) }}
-                            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${!activeGenre ? 'bg-accent border-accent text-white' : 'border-white/20 text-text-secondary hover:border-accent hover:text-accent'}`}
+                            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${!activeGenre ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-white/20 text-text-secondary hover:border-indigo-500/50 hover:text-indigo-300'}`}
                         >
                             All
                         </button>
@@ -118,7 +199,7 @@ export default function Home() {
                             <button
                                 key={g.id}
                                 onClick={() => handleGenreClick(g)}
-                                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${activeGenre?.id === g.id ? 'bg-accent border-accent text-white' : 'border-white/20 text-text-secondary hover:border-accent hover:text-accent'}`}
+                                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${activeGenre?.id === g.id ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-white/20 text-text-secondary hover:border-indigo-500/50 hover:text-indigo-300'}`}
                             >
                                 {g.name}
                             </button>
@@ -161,7 +242,7 @@ export default function Home() {
                     </div>
                 )}
 
-                <ScrollRow title="Trending Now" items={trending} loading={loading} />
+                <ScrollRow title="⚡ Trending Now" items={trending} loading={loading} isTrending />
                 <ScrollRow title="Popular Movies" items={popular} loading={loading} mediaType="movie" />
                 <ScrollRow title="Popular TV Shows" items={tv} loading={loading} mediaType="tv" />
                 <ScrollRow title="Top Rated Movies" items={topRated} loading={loading} mediaType="movie" />

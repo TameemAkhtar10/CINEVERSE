@@ -30,6 +30,26 @@ export default function HeroSection({ movie }) {
     const quickTiltX = useRef(null)
     const quickTiltY = useRef(null)
 
+    // Typewriter effect
+    const [typedDesc, setTypedDesc] = useState('')
+    const typeIntervalRef = useRef(null)
+
+    useEffect(() => {
+        const fullText = movie ? (movie.overview ? movie.overview.slice(0, 200) : '') : ''
+        if (!fullText) { setTypedDesc(''); return }
+        setTypedDesc('')
+        let i = 0
+        clearInterval(typeIntervalRef.current)
+        const timeout = setTimeout(() => {
+            typeIntervalRef.current = setInterval(() => {
+                i++
+                setTypedDesc(fullText.slice(0, i))
+                if (i >= fullText.length) clearInterval(typeIntervalRef.current)
+            }, 16)
+        }, 950)
+        return () => { clearTimeout(timeout); clearInterval(typeIntervalRef.current) }
+    }, [movie?.id])
+
     useEffect(() => {
         if (!movie?.id) return
         getMovieTrailer(movie.id)
@@ -43,9 +63,9 @@ export default function HeroSection({ movie }) {
             const words = titleRef.current?.querySelectorAll('.hero-word') || []
             const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
             tl.from(metaRef.current, { y: 24, opacity: 0, duration: 0.6 })
-              .from(words, { y: 50, opacity: 0, duration: 0.65, stagger: 0.07 }, '-=0.3')
-              .from(descRef.current, { y: 20, opacity: 0, duration: 0.55 }, '-=0.4')
-              .from(btnRef.current ? Array.from(btnRef.current.children) : [], { y: 20, opacity: 0, duration: 0.45, stagger: 0.1 }, '-=0.3')
+                .from(words, { y: 50, opacity: 0, duration: 0.65, stagger: 0.07 }, '-=0.3')
+                .from(descRef.current, { y: 20, opacity: 0, duration: 0.55 }, '-=0.4')
+                .from(btnRef.current ? Array.from(btnRef.current.children) : [], { y: 20, opacity: 0, duration: 0.45, stagger: 0.1 }, '-=0.3')
         }, heroRef)
         return () => ctx.revert()
     }, [movie])
@@ -131,36 +151,45 @@ export default function HeroSection({ movie }) {
                         ref={backdropRef}
                         src={backdrop}
                         alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover hero-ken-burns"
                         style={{ willChange: 'transform', transformOrigin: 'center center' }}
                         draggable={false}
                     />
                 )}
                 <ParticleField />
                 <HeroModel />
+                {/* Animated gradient mesh */}
+                <div className="mesh-bg" />
                 <div className="absolute inset-0 bg-hero-gradient" />
                 <div className="absolute inset-0 bg-gradient-to-t from-bg via-transparent to-transparent" />
 
                 <div className="relative z-10 h-full flex items-end pb-16 px-6 md:px-16 max-w-3xl">
                     <div className="space-y-4">
-                        <div ref={metaRef} className="flex items-center gap-3 text-sm text-text-secondary font-medium">
-                            <span className="bg-accent/20 text-accent border border-accent/30 px-2 py-0.5 rounded-full text-xs font-semibold">Trending</span>
-                            {year && <span>{year}</span>}
-                            <span className="flex items-center gap-1">
-                                <svg className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <div ref={metaRef} className="flex items-center gap-2.5 text-sm text-text-secondary font-medium flex-wrap">
+                            <span className="bg-amber-500 text-[#030712] px-3 py-1 rounded-full text-xs font-bold tracking-wider">✦ NEW</span>
+                            {year && <span className="text-slate-300">{year}</span>}
+                            <span className="animate-glow-pulse flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-400 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                                <svg className="w-3 h-3 fill-amber-400" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292z" />
                                 </svg>
                                 {rating}
                             </span>
-                            {genres && <span className="text-accent font-semibold">{genres}</span>}
+                            {genres && genres.split(', ').map((g, i) => (
+                                <span key={i} className="bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-2.5 py-0.5 rounded-full text-xs font-semibold">{g}</span>
+                            ))}
                         </div>
 
-                        <h1 ref={titleRef} className="text-4xl md:text-6xl font-extrabold text-white leading-tight">
+                        <h1 ref={titleRef} className="text-5xl md:text-7xl font-black italic text-white leading-[1.05] tracking-tight">
                             {title.split(' ').map((word, i) => (
                                 <span key={i} className="hero-word inline-block mr-[0.25em]">{word}</span>
                             ))}
                         </h1>
-                        <p ref={descRef} className="text-text-secondary text-sm md:text-base leading-relaxed max-w-xl">{desc}</p>
+                        <p ref={descRef} className="text-text-secondary text-sm md:text-base leading-relaxed max-w-xl min-h-[3.5rem]">
+                            {typedDesc}
+                            {typedDesc.length < (desc?.length ?? 0) && (
+                                <span className="inline-block w-[2px] h-[1em] bg-indigo-400 ml-0.5 align-middle animate-pulse" />
+                            )}
+                        </p>
 
                         <div ref={btnRef} className="flex items-center gap-4 pt-2">
                             <button
@@ -185,7 +214,7 @@ export default function HeroSection({ movie }) {
                                     btn.appendChild(ripple)
                                     setTimeout(() => ripple.remove(), 600)
                                 }}
-                                className="relative overflow-hidden flex items-center gap-2 bg-accent hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-full transition-all duration-200 shadow-red-sm hover:shadow-red-glow"
+                                className="relative overflow-hidden flex items-center gap-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold px-7 py-3.5 rounded-full transition-all duration-200 shadow-[0_0_14px_rgba(99,102,241,0.5)] hover:shadow-[0_0_28px_rgba(99,102,241,0.75),0_0_56px_rgba(99,102,241,0.35)]"
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M8 5v14l11-7z" />
@@ -196,8 +225,8 @@ export default function HeroSection({ movie }) {
                                 <button
                                     onClick={handleFav}
                                     className={`flex items-center gap-2 border font-semibold px-6 py-3 rounded-full transition-all duration-200 ${isFav
-                                            ? 'border-accent text-accent bg-accent/10'
-                                            : 'border-white/40 text-white hover:border-white'
+                                        ? 'border-accent text-accent bg-accent/10'
+                                        : 'border-white/40 text-white hover:border-white'
                                         }`}
                                 >
                                     <svg className="w-5 h-5" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">

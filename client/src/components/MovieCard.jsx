@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { gsap } from 'gsap'
@@ -8,7 +8,15 @@ import { IMG } from '../api/tmdb'
 import { formatRating } from '../utils/helpers'
 import StarRating from './StarRating'
 
-export default function MovieCard({ item, mediaType, progress }) {
+const GENRE_MAP = {
+    28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime',
+    99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History',
+    27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi',
+    53: 'Thriller', 10752: 'War', 37: 'Western', 10759: 'Action & Adv.',
+    10765: 'Sci-Fi & Fantasy', 10768: 'War & Politics',
+}
+
+export default function MovieCard({ item, mediaType, progress, isTrending, staggerIndex = 0 }) {
     const dispatch = useDispatch()
     const { isAuthenticated } = useSelector((s) => s.auth)
     const cardRef = useRef(null)
@@ -64,6 +72,15 @@ export default function MovieCard({ item, mediaType, progress }) {
     const isFav = favorites.some((f) => f.movieId === id)
     const isBookmarked = watchlist.some((w) => w.movieId === id)
 
+    // Stable match % seeded from movie id — shows only when authenticated
+    const matchPct = useMemo(() => {
+        if (!isAuthenticated || !item?.vote_average) return null
+        const seed = (id || 0) % 28
+        return Math.min(98, Math.round(item.vote_average * 9.1 + seed / 10))
+    }, [isAuthenticated, id, item?.vote_average])
+
+    const firstGenre = item?.genre_ids?.[0] ? GENRE_MAP[item.genre_ids[0]] : null
+
     const toggleFav = (e) => {
         e.preventDefault()
         if (!isAuthenticated) return
@@ -88,11 +105,16 @@ export default function MovieCard({ item, mediaType, progress }) {
         <Link
             ref={cardRef}
             to={`/${type === 'tv' ? 'tv' : 'movie'}/${id}`}
-            className="relative flex-shrink-0 w-[175px] rounded-xl overflow-hidden bg-card border border-white/[0.06] group"
+            data-cursor="play"
+            className="relative flex-shrink-0 w-[175px] rounded-2xl overflow-hidden bg-card border border-white/[0.06] hover:border-indigo-500/40 group transition-all duration-300 hover:shadow-[0_0_0_1px_rgba(99,102,241,0.35),0_0_28px_rgba(99,102,241,0.35)]"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            style={{ willChange: 'transform', transformStyle: 'preserve-3d' }}
+            style={{ willChange: 'transform', transformStyle: 'preserve-3d', animationDelay: `${staggerIndex * 75}ms` }}
         >
+            {/* Popularity pulse ring for trending */}
+            {isTrending && (
+                <span className="absolute inset-0 rounded-2xl pointer-events-none z-30 pulse-ring" />
+            )}
             {/* Glare overlay */}
             <div
                 ref={glareRef}
@@ -112,6 +134,8 @@ export default function MovieCard({ item, mediaType, progress }) {
                 }}
             />
             <div className="w-full h-[262px] bg-card overflow-hidden relative">
+                {/* Grain texture overlay */}
+                <div className="grain-overlay absolute inset-0 pointer-events-none z-[5] opacity-[0.04] mix-blend-overlay" />
                 {poster ? (
                     <img
                         src={poster}
@@ -129,17 +153,17 @@ export default function MovieCard({ item, mediaType, progress }) {
                 )}
 
                 {/* Play overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center shadow-red-glow">
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
+                    <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center shadow-indigo-glow">
                         <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                         </svg>
                     </div>
                 </div>
 
-                {/* Rating badge */}
-                <div className="absolute top-2 right-2 bg-accent/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-                    <svg className="w-3 h-3 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                {/* Rating badge — amber/gold */}
+                <div className="absolute top-2 right-2 z-10 bg-amber-500 text-[#030712] text-[11px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-sm">
+                    <svg className="w-3 h-3 fill-[#030712]" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292z" />
                     </svg>
                     {rating}
@@ -154,7 +178,7 @@ export default function MovieCard({ item, mediaType, progress }) {
                             title={isFav ? 'Remove from favorites' : 'Add to favorites'}
                         >
                             <svg
-                                className={`w-4 h-4 ${isFav ? 'text-red-400 fill-red-400' : 'text-white'}`}
+                                className={`w-4 h-4 ${isFav ? 'text-indigo-400 fill-indigo-400' : 'text-white'}`}
                                 fill={isFav ? 'currentColor' : 'none'}
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -180,6 +204,15 @@ export default function MovieCard({ item, mediaType, progress }) {
                     </div>
                 )}
 
+                {/* Genre pill */}
+                {firstGenre && (
+                    <div className="absolute bottom-2 left-2 z-10">
+                        <span className="bg-indigo-500/75 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-[2px] rounded-full">
+                            {firstGenre}
+                        </span>
+                    </div>
+                )}
+
                 {/* Watch progress bar */}
                 {progress != null && (
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
@@ -192,6 +225,9 @@ export default function MovieCard({ item, mediaType, progress }) {
                 <p className="text-text-primary font-semibold text-sm leading-tight truncate">{title}</p>
                 <div className="flex items-center justify-between mt-0.5">
                     <p className="text-text-secondary text-xs">{year || '—'}</p>
+                    {matchPct && (
+                        <span className="text-[10px] font-bold text-emerald-400">⭗ {matchPct}%</span>
+                    )}
                 </div>
                 <div className="mt-1.5">
                     <StarRating movieId={id} title={title} poster={item?.poster_path || ''} mediaType={type} size="sm" />

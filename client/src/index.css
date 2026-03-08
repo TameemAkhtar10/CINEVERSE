@@ -4,19 +4,19 @@
 
 /* ── Theme CSS variables ─────────────────────────────────── */
 :root {
-    --clr-text-primary: #ffffff;
-    --clr-text-secondary: #a3a3a3;
+    --clr-text-primary: #f1f5f9;
+    --clr-text-secondary: #94a3b8;
 }
 
 html:not(.dark) {
-    --clr-text-primary: #111111;
-    --clr-text-secondary: #555555;
+    --clr-text-primary: #0f172a;
+    --clr-text-secondary: #64748b;
 }
 
 /* Light mode background / card overrides */
 html:not(.dark) body,
 html:not(.dark) .bg-bg {
-    background-color: #f0f2f5 !important;
+    background-color: #f1f5f9 !important;
 }
 
 html:not(.dark) .bg-card {
@@ -58,9 +58,9 @@ html:not(.dark) .border-white\/\[0\.08\] {
     }
 
     body {
-        background-color: #0f0f0f;
+        background-color: #030712;
         color: var(--clr-text-primary);
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Space Grotesk', sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
@@ -71,11 +71,11 @@ html:not(.dark) .border-white\/\[0\.08\] {
     }
 
     ::-webkit-scrollbar-track {
-        background: #0f0f0f;
+        background: #030712;
     }
 
     ::-webkit-scrollbar-thumb {
-        background: #E50914;
+        background: #6366f1;
         border-radius: 3px;
     }
 }
@@ -98,10 +98,94 @@ html:not(.dark) .border-white\/\[0\.08\] {
     cursor: none !important;
 }
 
+/* ── Ken Burns zoom on hero backdrop ────────────────────── */
+.hero-ken-burns {
+    animation: kenBurns 10s ease-in-out infinite alternate;
+}
+
+@keyframes kenBurns {
+    0% {
+        transform: scale(1) translate(0%, 0%);
+    }
+
+    100% {
+        transform: scale(1.09) translate(-1.5%, -0.8%);
+    }
+}
+
+/* ── Popularity pulse ring on trending cards ────────────── */
+.pulse-ring {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6);
+    animation: pulseRing 2.4s ease-out infinite;
+}
+
+@keyframes pulseRing {
+    0% {
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.55);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+    }
+}
+
+/* ── Scroll-reveal utility ───────────────────────────── */
+.reveal-hidden {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.reveal-hidden.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* ── Ripple animation ────────────────────────────────────── */
 @keyframes ripple-expand {
     to {
         transform: scale(3.5);
         opacity: 0;
     }
+}
+
+/* ── Animated gradient mesh (HeroSection) ───────────────── */
+.mesh-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 65% 55% at 18% 52%, rgba(99, 102, 241, 0.38) 0%, transparent 100%),
+        radial-gradient(ellipse 55% 45% at 82% 18%, rgba(139, 92, 246, 0.22) 0%, transparent 100%),
+        radial-gradient(ellipse 45% 35% at 62% 82%, rgba(245, 158, 11, 0.14) 0%, transparent 100%);
+    animation: meshFloat 12s ease-in-out infinite alternate;
+    pointer-events: none;
+    will-change: transform;
+}
+
+@keyframes meshFloat {
+    0% {
+        transform: scale(1) translate(0%, 0%);
+    }
+
+    33% {
+        transform: scale(1.08) translate(2%, -1.5%);
+    }
+
+    66% {
+        transform: scale(0.96) translate(-2%, 2%);
+    }
+
+    100% {
+        transform: scale(1.04) translate(1%, -2%);
+    }
+}
+
+/* ── Card grain texture ──────────────────────────────────── */
+.grain-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
 }

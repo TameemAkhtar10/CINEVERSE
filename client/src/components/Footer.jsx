@@ -55,10 +55,12 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* Copyright */}
                 <div className="border-t border-white/[0.08] pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
                     <p className="text-text-secondary text-sm">© {new Date().getFullYear()} CINEVERSE. All rights reserved.</p>
-                    <p className="text-text-secondary text-xs">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+                    <div className="flex gap-4">
+                        <Link to="/terms" className="text-text-secondary hover:text-accent text-sm transition-colors">Terms of Service</Link>
+                        <Link to="/privacy" className="text-text-secondary hover:text-accent text-sm transition-colors">Privacy Policy</Link>
+                    </div>
                 </div>
             </div>
         </footer>
