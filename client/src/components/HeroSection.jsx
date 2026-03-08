@@ -99,7 +99,7 @@ export default function HeroSection({ movie }) {
 
     if (!movie) return null
 
-    const backdrop = IMG(movie.backdrop_path, 'original')
+    const backdrop = IMG(movie.backdrop_path, 'w1280')
     const title = movie.title || movie.name || 'Untitled'
     const year = (movie.release_date || movie.first_air_date || '').slice(0, 4)
     const rating = formatRating(movie.vote_average)
@@ -151,8 +151,13 @@ export default function HeroSection({ movie }) {
                         ref={backdropRef}
                         src={backdrop}
                         alt=""
+                        width={1280}
+                        height={720}
                         className="absolute inset-0 w-full h-full object-cover hero-ken-burns"
-                        style={{ willChange: 'transform', transformOrigin: 'center center' }}
+                        style={{ willChange: 'transform', transformOrigin: 'center center', transform: 'translateZ(0)' }}
+                        loading="eager"
+                        fetchpriority="high"
+                        decoding="async"
                         draggable={false}
                     />
                 )}

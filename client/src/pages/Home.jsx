@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useScrollReveal, useStaggerReveal } from '../hooks/useScrollAnimation'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchFavorites } from '../redux/slices/favoritesSlice'
 import { fetchHistory } from '../redux/slices/historySlice'
-import { getTrending, getPopularMovies, getPopularTV, getTopRated, getNowPlaying, getMovieGenres, getMoviesByGenre } from '../api/tmdb'
+import { getTrending, getPopularMovies, getPopularTV, getTopRated, getNowPlaying, getMovieGenres, getMoviesByGenre, getHiddenGems } from '../api/tmdb'
 import HeroSection from '../components/HeroSection'
 import ScrollRow from '../components/ScrollRow'
 import TrailerModal from '../components/TrailerModal'
@@ -47,6 +47,8 @@ export default function Home() {
     const [topRated, setTopRated] = useState([])
     const [nowPlaying, setNowPlaying] = useState([])
     const [loading, setLoading] = useState(true)
+    const [hiddenGems, setHiddenGems] = useState([])
+    const [surpriseSpinning, setSurpriseSpinning] = useState(false)
 
     const [activeGenre, setActiveGenre] = useState(null)
     const [genreMovies, setGenreMovies] = useState([])
@@ -65,16 +67,16 @@ export default function Home() {
     const genreTitleRef = useScrollReveal({ from: { opacity: 0, y: 20 }, to: { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' } })
     const genreChipsRef = useStaggerReveal({ from: { opacity: 0, scale: 0.85, y: 12 }, to: { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(1.4)', stagger: 0.045 } })
 
-    const handleRandomPick = () => {
+    const handleRandomPick = useCallback(() => {
         const pool = [...trending, ...popular].filter(Boolean)
         if (!pool.length) return
-        setPickerSpinning(true)
+        setSurpriseSpinning(true)
         setTimeout(() => {
             const pick = pool[Math.floor(Math.random() * pool.length)]
-            setPickerSpinning(false)
+            setSurpriseSpinning(false)
             navigate(`/${pick.media_type === 'tv' ? 'tv' : 'movie'}/${pick.id}`)
         }, 1200)
-    }
+    }, [trending, popular, navigate])
 
     // Continue watching: history items that have watch progress
     const continueWatching = Object.values(watchProgress)
@@ -108,6 +110,8 @@ export default function Home() {
                 setTv(tvRes.data.results || [])
                 setTopRated(tr.data.results || [])
                 setNowPlaying(np.data.results || [])
+                // load hidden gems separately to not block hero
+                getHiddenGems().then((r) => setHiddenGems(r.data.results || [])).catch(() => { })
             } catch {
             } finally {
                 setLoading(false)
@@ -116,7 +120,7 @@ export default function Home() {
         load()
     }, [])
 
-    const handleGenreClick = async (genre) => {
+    const handleGenreClick = useCallback(async (genre) => {
         if (activeGenre?.id === genre.id) {
             setActiveGenre(null)
             setGenreMovies([])
@@ -131,9 +135,9 @@ export default function Home() {
         } finally {
             setGenreLoading(false)
         }
-    }
+    }, [activeGenre])
 
-    const handleMoodClick = async (mood) => {
+    const handleMoodClick = useCallback(async (mood) => {
         if (activeMood?.key === mood.key) {
             setActiveMood(null)
             setMoodMovies([])
@@ -148,7 +152,7 @@ export default function Home() {
         } finally {
             setMoodLoading(false)
         }
-    }
+    }, [activeMood])
 
     return (
         <div className="min-h-screen bg-bg">
@@ -243,6 +247,9 @@ export default function Home() {
                 )}
 
                 <ScrollRow title="⚡ Trending Now" items={trending} loading={loading} isTrending />
+                {hiddenGems.length > 0 && (
+                    <ScrollRow title="💎 Hidden Gems" items={hiddenGems} loading={false} mediaType="movie" isHiddenGem />
+                )}
                 <ScrollRow title="Popular Movies" items={popular} loading={loading} mediaType="movie" />
                 <ScrollRow title="Popular TV Shows" items={tv} loading={loading} mediaType="tv" />
                 <ScrollRow title="Top Rated Movies" items={topRated} loading={loading} mediaType="movie" />
@@ -276,6 +283,26 @@ export default function Home() {
 
             {trailerOpen && <TrailerModal trailerKey={trailerKey} />}
             <Footer />
+
+            {/* ── Surprise Me floating button ───────────────── */}
+            <button
+                onClick={handleRandomPick}
+                disabled={surpriseSpinning || loading}
+                title="Surprise Me!"
+                className="fixed bottom-8 right-6 z-50 w-14 h-14 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.6)] hover:shadow-[0_0_32px_rgba(99,102,241,0.85)] transition-all disabled:opacity-60 disabled:cursor-not-allowed animate-[pulse_2.5s_ease-in-out_infinite]"
+                style={{ boxShadow: '0 0 20px rgba(99,102,241,0.6), 0 4px 16px rgba(0,0,0,0.4)' }}
+            >
+                {surpriseSpinning ? (
+                    <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a10 10 0 100 10h-2a8 8 0 01-8-8z" />
+                    </svg>
+                ) : (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M5 3a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h2v2H5V5zm0 4h2v2H5V9zm0 4h2v2H5v-2zm4-8h2v2H9V5zm0 4h2v2H9V9zm0 4h2v2H9v-2zm4-8h2v2h-2V5zm0 4h2v2h-2V9zm0 4h2v2h-2v-2zm4-8h2v2h-2V5zm0 4h2v2h-2V9zm0 4h2v2h-2v-2z" />
+                    </svg>
+                )}
+            </button>
         </div>
     )
 }

@@ -11,6 +11,100 @@ import ScrollRow from '../components/ScrollRow'
 import CommentSection from '../components/CommentSection'
 import { getTrailerKey, formatRating, formatDate } from '../utils/helpers'
 
+// Famous quotes by TMDB movie ID
+const QUOTES_DB = {
+    550: [ // Fight Club
+        { quote: "The first rule of Fight Club is: you do not talk about Fight Club.", speaker: "Tyler Durden" },
+        { quote: "It's only after we've lost everything that we're free to do anything.", speaker: "Tyler Durden" },
+        { quote: "You are not your job. You're not how much money you have in the bank.", speaker: "Tyler Durden" },
+    ],
+    278: [ // Shawshank Redemption
+        { quote: "Get busy living, or get busy dying.", speaker: "Andy Dufresne" },
+        { quote: "Hope is a good thing, maybe the best of things, and no good thing ever dies.", speaker: "Andy Dufresne" },
+        { quote: "I have to remind myself that some birds aren't meant to be caged.", speaker: "Red" },
+    ],
+    238: [ // The Godfather
+        { quote: "I'm going to make him an offer he can't refuse.", speaker: "Vito Corleone" },
+        { quote: "Leave the gun. Take the cannoli.", speaker: "Peter Clemenza" },
+        { quote: "A man who doesn't spend time with his family can never be a real man.", speaker: "Vito Corleone" },
+    ],
+    680: [ // Pulp Fiction
+        { quote: "Say 'what' again. I dare you, I double dare you.", speaker: "Jules Winnfield" },
+        { quote: "Personality goes a long way.", speaker: "Jules Winnfield" },
+        { quote: "If my answers frighten you then you should cease asking scary questions.", speaker: "Jules Winnfield" },
+    ],
+    13: [ // Forrest Gump
+        { quote: "Life is like a box of chocolates. You never know what you're gonna get.", speaker: "Forrest Gump" },
+        { quote: "Stupid is as stupid does.", speaker: "Forrest Gump" },
+        { quote: "Run, Forrest! Run!", speaker: "Mrs. Gump" },
+    ],
+    389: [ // 12 Angry Men
+        { quote: "It's not easy to stand alone against the ridicule of others.", speaker: "Juror #8" },
+        { quote: "We're talking about somebody's life here.", speaker: "Juror #8" },
+    ],
+    424: [ // Schindler's List
+        { quote: "Whoever saves one life, saves the world entire.", speaker: "Inscription" },
+        { quote: "I could have got more... I don't know, if I'd just... I could have got more.", speaker: "Oskar Schindler" },
+    ],
+    155: [ // The Dark Knight
+        { quote: "Why so serious?", speaker: "The Joker" },
+        { quote: "Some men just want to watch the world burn.", speaker: "Alfred" },
+        { quote: "You either die a hero, or you live long enough to see yourself become the villain.", speaker: "Harvey Dent" },
+    ],
+    19404: [ // Dilwale Dulhania Le Jayenge
+        { quote: "Ja Simran ja, jee le apni zindagi.", speaker: "Baldev Singh" },
+    ],
+    27205: [ // Inception
+        { quote: "You mustn't be afraid to dream a little bigger, darling.", speaker: "Eames" },
+        { quote: "An idea is like a virus, resilient, highly contagious.", speaker: "Cobb" },
+        { quote: "The dream is real. The non-dream is the reality.", speaker: "Cobb" },
+    ],
+    769: [ // Goodfellas
+        { quote: "As far back as I can remember, I always wanted to be a gangster.", speaker: "Henry Hill" },
+        { quote: "Funny how? Like I'm a clown, I amuse you?", speaker: "Tommy DeVito" },
+    ],
+    11: [ // Star Wars: A New Hope
+        { quote: "May the Force be with you.", speaker: "Han Solo" },
+        { quote: "I find your lack of faith disturbing.", speaker: "Darth Vader" },
+        { quote: "Do or do not. There is no try.", speaker: "Yoda" },
+    ],
+    200: [ // Batman Begins (filling up)
+        { quote: "Why do we fall, sir? So that we can learn to pick ourselves up.", speaker: "Alfred" },
+    ],
+    597: [ // Titanic
+        { quote: "I'm the king of the world!", speaker: "Jack Dawson" },
+        { quote: "I'll never let go, Jack. I'll never let go.", speaker: "Rose DeWitt Bukater" },
+    ],
+    122: [ // The Lord of the Rings: Return of the King
+        { quote: "There's some good in this world, Mr. Frodo, and it's worth fighting for.", speaker: "Samwise Gamgee" },
+        { quote: "My precious.", speaker: "Gollum" },
+    ],
+}
+
+function MovieQuotes({ movieId }) {
+    const quotes = QUOTES_DB[Number(movieId)]
+    if (!quotes || quotes.length === 0) return null
+    return (
+        <div className="mt-10">
+            <h2 className="text-xl font-bold text-white mb-5">🎙️ Famous Quotes</h2>
+            <div className="space-y-4">
+                {quotes.map((q, i) => (
+                    <div
+                        key={i}
+                        className="bg-gradient-to-r from-indigo-500/10 to-violet-500/5 border border-indigo-500/20 rounded-2xl px-6 py-5 relative overflow-hidden"
+                    >
+                        <div className="absolute top-3 left-4 text-4xl text-indigo-500/20 font-serif leading-none select-none">"</div>
+                        <p className="text-white text-sm md:text-base leading-relaxed italic relative z-10 pl-3">
+                            "{q.quote}"
+                        </p>
+                        <p className="text-indigo-300 text-xs font-semibold mt-2.5 pl-3 relative z-10">— {q.speaker}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 export default function MovieDetail() {
     const { id } = useParams()
     const dispatch = useDispatch()
@@ -256,6 +350,7 @@ export default function MovieDetail() {
                 )}
 
                 <div className="max-w-3xl pb-16">
+                    <MovieQuotes movieId={movie.id} />
                     <CommentSection movieId={movie.id} mediaType="movie" />
                 </div>
             </div>

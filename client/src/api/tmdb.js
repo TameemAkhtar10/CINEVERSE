@@ -98,6 +98,17 @@ export const searchPeople = (query, page = 1) =>
 export const getMovieRecommendations = (id, page = 1) =>
     tmdb.get(`/movie/${id}/recommendations`, { params: p({ page }) })
 
+export const getHiddenGems = (page = 1) =>
+    tmdb.get('/discover/movie', {
+        params: p({
+            'vote_average.gte': 7.5,
+            'vote_count.gte': 200,
+            'popularity.lte': 50,
+            sort_by: 'vote_average.desc',
+            page,
+        }),
+    })
+
 export const getTVRecommendations = (id, page = 1) =>
     tmdb.get(`/tv/${id}/recommendations`, { params: p({ page }) })
 

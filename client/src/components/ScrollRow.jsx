@@ -6,7 +6,7 @@ import SkeletonCard from './SkeletonCard'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export default function ScrollRow({ title, items, loading, mediaType, isTrending }) {
+export default function ScrollRow({ title, items, loading, mediaType, isTrending, isHiddenGem }) {
   const rowContainerRef = useRef(null)
   const titleRef = useRef(null)
   const cardsRef = useRef(null)
@@ -146,7 +146,7 @@ export default function ScrollRow({ title, items, loading, mediaType, isTrending
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
             : items?.map((item, i) => (
-              <MovieCard key={item.id} item={item} mediaType={mediaType} isTrending={isTrending} staggerIndex={i} />
+              <MovieCard key={item.id} item={item} mediaType={mediaType} isTrending={isTrending} isHiddenGem={isHiddenGem} staggerIndex={i} />
             ))}
         </div>
       </div>

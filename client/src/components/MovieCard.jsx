@@ -16,7 +16,7 @@ const GENRE_MAP = {
     10765: 'Sci-Fi & Fantasy', 10768: 'War & Politics',
 }
 
-export default function MovieCard({ item, mediaType, progress, isTrending, staggerIndex = 0 }) {
+const MovieCard = React.memo(function MovieCard({ item, mediaType, progress, isTrending, isHiddenGem, staggerIndex = 0 }) {
     const dispatch = useDispatch()
     const { isAuthenticated } = useSelector((s) => s.auth)
     const cardRef = useRef(null)
@@ -115,6 +115,12 @@ export default function MovieCard({ item, mediaType, progress, isTrending, stagg
             {isTrending && (
                 <span className="absolute inset-0 rounded-2xl pointer-events-none z-30 pulse-ring" />
             )}
+            {/* Hidden Gem badge */}
+            {isHiddenGem && (
+                <div className="absolute top-2 left-2 z-20 bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    💎 Hidden Gem
+                </div>
+            )}
             {/* Glare overlay */}
             <div
                 ref={glareRef}
@@ -133,15 +139,18 @@ export default function MovieCard({ item, mediaType, progress, isTrending, stagg
                     transition: 'opacity 0.3s',
                 }}
             />
-            <div className="w-full h-[262px] bg-card overflow-hidden relative">
+            <div className="w-full bg-card overflow-hidden relative" style={{ aspectRatio: '2/3', height: '262px' }}>
                 {/* Grain texture overlay */}
                 <div className="grain-overlay absolute inset-0 pointer-events-none z-[5] opacity-[0.04] mix-blend-overlay" />
                 {poster ? (
                     <img
                         src={poster}
                         alt={title}
+                        width={175}
+                        height={262}
                         className="w-full h-full object-cover transition-[filter,transform] duration-500 blur-sm group-hover:scale-105"
                         loading="lazy"
+                        decoding="async"
                         onLoad={(e) => e.currentTarget.classList.remove('blur-sm')}
                     />
                 ) : (
@@ -235,4 +244,6 @@ export default function MovieCard({ item, mediaType, progress, isTrending, stagg
             </div>
         </Link>
     )
-}
+})
+
+export default MovieCard

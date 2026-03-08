@@ -7,6 +7,7 @@ import ratingsReducer from './slices/ratingsSlice'
 import watchlistReducer from './slices/watchlistSlice'
 import notificationsReducer from './slices/notificationsSlice'
 import watchProgressReducer from './slices/watchProgressSlice'
+import customListsReducer from './slices/customListsSlice'
 
 const store = configureStore({
     reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
         watchlist: watchlistReducer,
         notifications: notificationsReducer,
         watchProgress: watchProgressReducer,
+        customLists: customListsReducer,
     },
 })
 

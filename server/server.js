@@ -17,6 +17,7 @@ const commentsRoutes = require('./routes/comments')
 const pollsRoutes = require('./routes/polls')
 const leaderboardRoutes = require('./routes/leaderboard')
 const shareRoutes = require('./routes/share')
+const customListsRoutes = require('./routes/customLists')
 
 const app = express()
 
@@ -39,6 +40,7 @@ app.use('/api/comments', commentsRoutes)
 app.use('/api/polls', pollsRoutes)
 app.use('/api/leaderboard', leaderboardRoutes)
 app.use('/api/share', shareRoutes)
+app.use('/api/lists', customListsRoutes)
 
 app.use(express.static(path.join(__dirname, 'public')))
 
