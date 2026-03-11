@@ -8,8 +8,27 @@ export default function TrailerModal({ trailerKey }) {
     const [theaterMode, setTheaterMode] = useState(false)
     const [pip, setPip] = useState(false)
     const [pipPos, setPipPos] = useState({ x: 24, y: 24 })
+    const [hasError, setHasError] = useState(false)
     const pipDrag = useRef({ active: false, ox: 0, oy: 0 })
     const pipRef = useRef(null)
+
+    // Reset error state whenever the trailer changes
+    useEffect(() => { setHasError(false) }, [trailerKey])
+
+    // YouTube sends embedding-disabled errors (101/150) via postMessage
+    useEffect(() => {
+        const handleMessage = (e) => {
+            if (typeof e.data !== 'string') return
+            try {
+                const data = JSON.parse(e.data)
+                if (data?.event === 'infoDelivery' && data?.info?.error) {
+                    setHasError(true)
+                }
+            } catch { }
+        }
+        window.addEventListener('message', handleMessage)
+        return () => window.removeEventListener('message', handleMessage)
+    }, [])
 
     useEffect(() => {
         const onKey = (e) => {
@@ -38,7 +57,7 @@ export default function TrailerModal({ trailerKey }) {
     if (!trailerOpen) return null
 
     const iframeUrl = trailerKey
-        ? `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0`
+        ? `https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0&enablejsapi=1`
         : null
 
     if (pip) {
@@ -53,7 +72,22 @@ export default function TrailerModal({ trailerKey }) {
             >
                 {iframeUrl && (
                     <div className="relative aspect-video">
-                        <iframe src={iframeUrl} title="Trailer" allow="autoplay; encrypted-media" allowFullScreen className="w-full h-full" />
+                        {!hasError ? (
+                            <iframe
+                                src={iframeUrl}
+                                title="Trailer"
+                                allow="autoplay; encrypted-media"
+                                allowFullScreen
+                                className="w-full h-full"
+                                onError={() => setHasError(true)}
+                            />
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-black/80 text-white p-4">
+                                <svg className="w-10 h-10 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M21.582 7.185a2.506 2.506 0 0 0-1.768-1.768C18.254 5 12 5 12 5s-6.254 0-7.814.417A2.506 2.506 0 0 0 2.418 7.185C2 8.745 2 12 2 12s0 3.255.418 4.815a2.506 2.506 0 0 0 1.768 1.768C5.746 19 12 19 12 19s6.254 0 7.814-.417a2.506 2.506 0 0 0 1.768-1.768C22 15.255 22 12 22 12s0-3.255-.418-4.815zM10 15V9l5.2 3-5.2 3z" /></svg>
+                                <p className="text-sm font-medium text-center">Can't play here</p>
+                                <a href={`https://www.youtube.com/watch?v=${trailerKey}`} target="_blank" rel="noopener noreferrer" className="bg-red-600 hover:bg-red-700 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors">Watch on YouTube</a>
+                            </div>
+                        )}
                     </div>
                 )}
                 <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -107,13 +141,33 @@ export default function TrailerModal({ trailerKey }) {
 
                     {iframeUrl ? (
                         <div className="aspect-video w-full rounded-xl overflow-hidden shadow-2xl">
-                            <iframe
-                                src={iframeUrl}
-                                title="Trailer"
-                                allow="autoplay; encrypted-media"
-                                allowFullScreen
-                                className="w-full h-full"
-                            />
+                            {!hasError ? (
+                                <iframe
+                                    src={iframeUrl}
+                                    title="Trailer"
+                                    allow="autoplay; encrypted-media"
+                                    allowFullScreen
+                                    className="w-full h-full"
+                                    onError={() => setHasError(true)}
+                                />
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-[#0f0f0f] text-white">
+                                    <svg className="w-16 h-16 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M21.582 7.185a2.506 2.506 0 0 0-1.768-1.768C18.254 5 12 5 12 5s-6.254 0-7.814.417A2.506 2.506 0 0 0 2.418 7.185C2 8.745 2 12 2 12s0 3.255.418 4.815a2.506 2.506 0 0 0 1.768 1.768C5.746 19 12 19 12 19s6.254 0 7.814-.417a2.506 2.506 0 0 0 1.768-1.768C22 15.255 22 12 22 12s0-3.255-.418-4.815zM10 15V9l5.2 3-5.2 3z" /></svg>
+                                    <div className="text-center space-y-1">
+                                        <p className="text-lg font-semibold">Trailer can't be played here</p>
+                                        <p className="text-sm text-white/50">The video owner has disabled embedding</p>
+                                    </div>
+                                    <a
+                                        href={`https://www.youtube.com/watch?v=${trailerKey}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-bold transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M21.582 7.185a2.506 2.506 0 0 0-1.768-1.768C18.254 5 12 5 12 5s-6.254 0-7.814.417A2.506 2.506 0 0 0 2.418 7.185C2 8.745 2 12 2 12s0 3.255.418 4.815a2.506 2.506 0 0 0 1.768 1.768C5.746 19 12 19 12 19s6.254 0 7.814-.417a2.506 2.506 0 0 0 1.768-1.768C22 15.255 22 12 22 12s0-3.255-.418-4.815zM10 15V9l5.2 3-5.2 3z" /></svg>
+                                        Watch on YouTube
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="aspect-video w-full rounded-xl bg-card border border-white/10 flex items-center justify-center">

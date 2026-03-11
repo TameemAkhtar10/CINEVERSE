@@ -21,7 +21,11 @@ const MovieCard = React.memo(function MovieCard({ item, mediaType, progress, isT
     const { isAuthenticated } = useSelector((s) => s.auth)
     const cardRef = useRef(null)
     const glareRef = useRef(null)
+    const hoverTimer = useRef(null)
     const [glareStyle, setGlareStyle] = useState({ opacity: 0, left: '50%', top: '50%' })
+    const [showPreview, setShowPreview] = useState(false)
+    const [trailerKey, setTrailerKey] = useState(null)
+    const [videoError, setVideoError] = useState(false)
 
     const handleMouseMove = (e) => {
         const card = cardRef.current
@@ -48,7 +52,29 @@ const MovieCard = React.memo(function MovieCard({ item, mediaType, progress, isT
         setGlareStyle({ opacity: 0.18, left: `${glareX}%`, top: `${glareY}%` })
     }
 
+    const handleMouseEnter = () => {
+        hoverTimer.current = setTimeout(async () => {
+            try {
+                const endpoint = type === 'tv' ? 'tv' : 'movie'
+                const res = await fetch(
+                    `https://api.themoviedb.org/3/${endpoint}/${id}/videos?api_key=${import.meta.env.VITE_TMDB_API_KEY}`
+                )
+                const data = await res.json()
+                const trailer = data.results?.find((v) => v.type === 'Trailer' && v.site === 'YouTube')
+                if (trailer) {
+                    setVideoError(false)
+                    setTrailerKey(trailer.key)
+                    setShowPreview(true)
+                }
+            } catch (_) { }
+        }, 1500)
+    }
+
     const handleMouseLeave = () => {
+        clearTimeout(hoverTimer.current)
+        setShowPreview(false)
+        setTrailerKey(null)
+        setVideoError(false)
         gsap.to(cardRef.current, {
             rotateX: 0,
             rotateY: 0,
@@ -107,6 +133,7 @@ const MovieCard = React.memo(function MovieCard({ item, mediaType, progress, isT
             to={`/${type === 'tv' ? 'tv' : 'movie'}/${id}`}
             data-cursor="play"
             className="relative flex-shrink-0 w-[175px] rounded-2xl overflow-hidden bg-card border border-white/[0.06] hover:border-indigo-500/40 group transition-all duration-300 hover:shadow-[0_0_0_1px_rgba(99,102,241,0.35),0_0_28px_rgba(99,102,241,0.35)]"
+            onMouseEnter={handleMouseEnter}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             style={{ willChange: 'transform', transformStyle: 'preserve-3d', animationDelay: `${staggerIndex * 75}ms` }}
@@ -159,6 +186,17 @@ const MovieCard = React.memo(function MovieCard({ item, mediaType, progress, isT
                             <path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM8 17l-2-2 2-2 2 2-2 2zm7-1H9v-2h6v2zm1-4H8V8h8v4z" />
                         </svg>
                     </div>
+                )}
+
+                {/* Hover trailer preview */}
+                {showPreview && trailerKey && !videoError && (
+                    <iframe
+                        className="absolute inset-0 w-full h-full z-20"
+                        src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerKey}&enablejsapi=1`}
+                        allow="autoplay"
+                        title="Preview"
+                        onError={() => setVideoError(true)}
+                    />
                 )}
 
                 {/* Play overlay */}
