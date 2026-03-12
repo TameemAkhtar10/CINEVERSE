@@ -18,6 +18,7 @@ const pollsRoutes = require('./routes/polls')
 const leaderboardRoutes = require('./routes/leaderboard')
 const shareRoutes = require('./routes/share')
 const customListsRoutes = require('./routes/customLists')
+const tmdbRoutes = require('./routes/tmdb')
 
 const app = express()
 
@@ -41,6 +42,7 @@ app.use('/api/polls', pollsRoutes)
 app.use('/api/leaderboard', leaderboardRoutes)
 app.use('/api/share', shareRoutes)
 app.use('/api/lists', customListsRoutes)
+app.use('/api/tmdb', tmdbRoutes)
 
 app.use(express.static(path.join(__dirname, 'public')))
 

@@ -1,11 +1,12 @@
 import axios from 'axios'
 
-const BASE = import.meta.env.VITE_TMDB_BASE_URL || 'https://api.themoviedb.org/3'
-const KEY = import.meta.env.VITE_TMDB_API_KEY || ''
+const tmdb = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/tmdb`
+        : '/api/tmdb',
+})
 
-const tmdb = axios.create({ baseURL: BASE })
-
-const p = (extra = {}) => ({ api_key: KEY, ...extra })
+const p = (extra = {}) => ({ ...extra })
 
 export const getTrending = (mediaType = 'all', timeWindow = 'week') =>
     tmdb.get(`/trending/${mediaType}/${timeWindow}`, { params: p() })

@@ -12,7 +12,7 @@ const axios = require('axios')
 const router = express.Router()
 
 const TMDB_BASE = 'https://api.themoviedb.org/3'
-const TMDB_KEY = process.env.TMDB_API_KEY || 'ed6cfb37b3b961f3a98fb206579f7bfd'
+const TMDB_KEY = process.env.TMDB_API_KEY
 
 router.get('/*', async (req, res) => {
     try {
